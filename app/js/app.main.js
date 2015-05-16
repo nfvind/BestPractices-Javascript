@@ -66,37 +66,75 @@ var ChangeBackgroundColor = (function (document, $) {
     })();
 })(NFV.MyApp, document, jQuery);
 
-NFV.MyApp.Anna = (function (document, $) {
-    // Privat vars -->
-    var _elementName;
+(function (app, document, $) {
+    app.recursiveCalls = (function () {
+        var publicApi,
+            _$background,
+            _currentLoop = 0,
+            _bgColor;
+        var recursiveOptions = {
+            loopsToRun:10,
+            timeOut:1000
+        };
+        var initialize = function (bgElement, bgColor) {
+            _bgColor = bgColor;
+            _$background = $(bgElement);
+        };
+        var changeColor = function () {
+            _$background.css("background-color",_bgColor);
+        };
+        var changeColorRecursivelyAugmented = function (timeOut) {
+            _currentLoop += 1;
+            _bgColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+            console.log("Changing colors to : "+_bgColor);
+            changeColor();
+            setTimeout(function () {
+                if(_currentLoop < recursiveOptions.loopsToRun) {
+                    changeColorRecursivelyAugmented(timeOut);
+                }
+                }, timeOut);
+            };
+        var changeColorRecursively = function () {
+            if(recursiveOptions.loopsToRun > _currentLoop){
+                _bgColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+                console.log("Changing colors to : "+_bgColor);
+                changeColor();
+                _currentLoop += 1;
+                console.log("loops ran through "+_currentLoop + " Loops left "+(recursiveOptions.loopsToRun - _currentLoop));
+                return setTimeout(changeColorRecursively,recursiveOptions.timeOut);
+            }else{
+                _bgColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+                console.log("Changing colors to : "+_bgColor);
+                console.log("Last run");
+                return setTimeout(changeColor, recursiveOptions.timeOut);
+            }
 
-    //jQuery vars -->
-    var $element = $(_elementName);
+        };
+      /*  var changeText = function () {
+            for(var i = 1; i < recursiveOptions.loopsToRun; i+=1){
+                setTimeout(function (nmbr) {
+                    console.log(nmbr);
+                }(i),1000);
+            }
+        };*/
+        var changeText = function () {
+            for(var i = 1; i < recursiveOptions.loopsToRun; i+=1){
+                (function (nmbr) {
+                    setTimeout(function () {
+                        console.log(nmbr);
+                    },1000);
+                })(i);
 
-    var setElementName = function (elem) {
-        _elementName = elem;
-    };
-
-    var AnnaToFat = function () {
-        var options = [{el:"p"},{el:"h1"}];
-        for(var i = 0; i < options.length; i+=1){
-            $(options[i].el).css("font-weight", "bold");
-            $(options[i].el).css("font-size", "80px");
-            $element.html("Fed");
-        }
-    };
-    var AnnaNormal = function () {
-        var options = [{el:"p"},{el:"h1"}];
-        for(var i = 0; i < options.length; i+=1){
-            $(options[i].el).css("font-weight", "");
-            $(options[i].el).css("font-size", "");
-        }
-    };
-
-    return {
-        AnnaToBig:AnnaToFat,
-        AnnaNormal: AnnaNormal,
-        setElement:setElementName
-    }
-
-})(document, jQuery);
+            }
+        };
+        publicApi = {
+            init:initialize,
+            changeText: changeText,
+            options:recursiveOptions,
+            changeBgColor:changeColor,
+            changeRecursivelyBgColor:changeColorRecursively,
+            changeColorRecursivelyAugmented:changeColorRecursivelyAugmented
+        };
+        return publicApi;
+    })();
+}(NFV.MyApp, document, jQuery));
